@@ -15,6 +15,11 @@
                    Style="{StaticResource HeaderTextBlockStyle}"
                    Text="CS5041 P3: Kinect" />
 
+        <TextBlock Margin="20"
+                   HorizontalAlignment="Right"
+                   Style="{StaticResource SubheaderTextBlockStyle}"
+                   Text="{Binding StatusText}" />
+
 
         <Viewbox Grid.Row="1" HorizontalAlignment="Center">
             <Grid x:Name="DisplayGrid"
