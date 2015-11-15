@@ -251,35 +251,33 @@ namespace KinectFaces
 
             CoordinateMapper coordinateMapper = this.kinectSensor.CoordinateMapper;
 
-            // update all joints
             foreach (var jointType in body.Joints.Keys)
             {
-                // sometimes the depth(Z) of an inferred joint may show as negative
-                // clamp down to 0.1f to prevent coordinatemapper from returning (-Infinity, -Infinity)
                 CameraSpacePoint position = body.Joints[jointType].Position;
                 if (position.Z < 0)
                 {
                     position.Z = InferredZPositionClamp;
                 }
 
-                // map joint position to depth space
                 DepthSpacePoint depthSpacePoint = coordinateMapper.MapCameraPointToDepthSpace(position);
                 jointPointsInDepthSpace[jointType] = new Point(depthSpacePoint.X, depthSpacePoint.Y);
+                
+                if(jointType == JointType.Head)
+                {
+                    this.UpdateHead();
+                }
 
-                // modify hand ellipse colors based on hand states
-                // modity hand ellipse sizes based on tracking confidences
                 if (jointType == JointType.HandRight)
                 {
-                    this.UpdateHand(bodyInfo.HandRightEllipse, body.HandRightState, body.HandRightConfidence, jointPointsInDepthSpace[jointType]);
+                    this.UpdateHand(bodyInfo.HandLeftThumbsUp, body.HandRightState, body.HandRightConfidence, jointPointsInDepthSpace[jointType]);
                 }
 
                 if (jointType == JointType.HandLeft)
                 {
-                    this.UpdateHand(bodyInfo.HandLeftEllipse, body.HandLeftState, body.HandLeftConfidence, jointPointsInDepthSpace[jointType]);
+                    this.UpdateHand(bodyInfo.HandRightThumbsUp, body.HandLeftState, body.HandLeftConfidence, jointPointsInDepthSpace[jointType]);
                 }
             }
 
-            // update all bones
             foreach (var bone in bodyInfo.Bones)
             {
                 this.UpdateBone(bodyInfo.BoneLines[bone], joints[bone.Item1], joints[bone.Item2],
@@ -288,33 +286,26 @@ namespace KinectFaces
             }
         }
 
-        private void ClearBody(int bodyIndex)
+        private void UpdateHead()
         {
-            var bodyInfo = this.BodyInfos[bodyIndex];
 
-            foreach (var bone in bodyInfo.Bones)
-            {
-                bodyInfo.BoneLines[bone].Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
-
-            bodyInfo.HandLeftEllipse.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            bodyInfo.HandRightEllipse.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
 
-        private void UpdateHand(Ellipse ellipse, HandState handState, TrackingConfidence trackingConfidence, Point point)
+        private void UpdateHand(FrameworkElement thumbsUp, HandState handState, TrackingConfidence trackingConfidence, Point point)
         {
-            ellipse.Fill = new SolidColorBrush(this.HandStateToColor(handState));
+            var visibility = Visibility.Collapsed;
 
-            // draw handstate ellipse based on tracking confidence
-            ellipse.Width = ellipse.Height = (trackingConfidence == TrackingConfidence.Low) ? LowConfidenceHandSize : HighConfidenceHandSize;
+            if (trackingConfidence == TrackingConfidence.High)
+            {
+                visibility = (handState == HandState.Lasso) ? Visibility.Visible : Visibility.Collapsed;
+            }
 
-            ellipse.Visibility = Windows.UI.Xaml.Visibility.Visible;
-
-            // don't draw handstate if hand joints are not tracked
+            thumbsUp.Visibility = visibility;
+            
             if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
             {
-                Canvas.SetLeft(ellipse, point.X - ellipse.Width / 2);
-                Canvas.SetTop(ellipse, point.Y - ellipse.Width / 2);
+                Canvas.SetLeft(thumbsUp, point.X - thumbsUp.Width / 2);
+                Canvas.SetTop(thumbsUp, point.Y - thumbsUp.Width / 2);
             }
         }
 
@@ -344,29 +335,12 @@ namespace KinectFaces
             line.Y2 = endPoint.Y;
         }
 
-        private Color HandStateToColor(HandState handState)
-        {
-            switch (handState)
-            {
-                case HandState.Open:
-                    return Colors.Green;
-
-                case HandState.Closed:
-                    return Colors.Red;
-
-                case HandState.Lasso:
-                    return Colors.Blue;
-            }
-
-            return Colors.Transparent;
-        }
-
         private void PopulateVisualObjects()
         {
             foreach (var bodyInfo in this.BodyInfos)
             {
-                this.drawingCanvas.Children.Add(bodyInfo.HandLeftEllipse);
-                this.drawingCanvas.Children.Add(bodyInfo.HandRightEllipse);
+                this.drawingCanvas.Children.Add(bodyInfo.HandLeftThumbsUp);
+                this.drawingCanvas.Children.Add(bodyInfo.HandRightThumbsUp);
                 
                 foreach (var bone in bodyInfo.Bones)
                 {
@@ -375,5 +349,17 @@ namespace KinectFaces
             }
         }
 
+        private void ClearBody(int bodyIndex)
+        {
+            var bodyInfo = this.BodyInfos[bodyIndex];
+
+            foreach (var bone in bodyInfo.Bones)
+            {
+                bodyInfo.BoneLines[bone].Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+            }
+
+            bodyInfo.HandLeftThumbsUp.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+            bodyInfo.HandRightThumbsUp.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+        }
     }
 }

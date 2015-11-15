@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using Windows.UI;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Shapes;
 using WindowsPreview.Kinect;
 
@@ -20,34 +22,45 @@ namespace KinectFaces
     {
         public Color BodyColor { get; set; }
 
-        // ellipse representing left handstate
-        public Ellipse HandLeftEllipse { get; set; }
-
-        // ellipse representing right handstate
-        public Ellipse HandRightEllipse { get; set; }
-
-        // definition of bones
+        public FrameworkElement HandLeftThumbsUp { get; set; }
+        public FrameworkElement HandRightThumbsUp { get; set; }
+        
         public TupleList<JointType, JointType> Bones { get; private set; }
-
-        // collection of bones associated with the line object
         public Dictionary<Tuple<JointType, JointType>, Line> BoneLines { get; private set; }
+
+        private FrameworkElement GetHand(bool isLeft)
+        {
+            var vb = new Viewbox();
+            vb.Width = 50;
+            vb.Height = 50;
+
+            var canvas = new Canvas();
+            canvas.Style = Application.Current.Resources["ThumbsUpCanvas"] as Style;
+
+            var path = new Path();
+            if(isLeft)
+            {
+                path.Style = Application.Current.Resources["ThumbsUpRight"] as Style;
+            }
+            else
+            {
+                path.Style = Application.Current.Resources["ThumbsUpLeft"] as Style;
+            }
+
+            canvas.Children.Add(path);
+            vb.Child = canvas;
+            vb.Visibility = Visibility.Collapsed;
+
+            return vb;
+        }
 
         public Body(Color bodyColor)
         {
             this.BodyColor = bodyColor;
 
-            // create hand state ellipses
-            this.HandLeftEllipse = new Ellipse()
-            {
-                Visibility = Windows.UI.Xaml.Visibility.Collapsed
-            };
+            this.HandLeftThumbsUp = GetHand(true);
+            this.HandRightThumbsUp = GetHand(false);
 
-            this.HandRightEllipse = new Ellipse()
-            {
-                Visibility = Windows.UI.Xaml.Visibility.Collapsed
-            };
-
-            // collection of bones
             this.BoneLines = new Dictionary<Tuple<JointType, JointType>, Line>();
 
             // a bone defined as a line between two joints
@@ -88,7 +101,6 @@ namespace KinectFaces
                     { JointType.AnkleLeft, JointType.FootLeft },
                 };
 
-            // pre-populate list of bones that are non-visible initially
             foreach (var bone in this.Bones)
             {
                 this.BoneLines.Add(bone, new Line()
