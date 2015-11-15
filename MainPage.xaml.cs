@@ -75,7 +75,7 @@ namespace KinectFaces
         private float JointSpaceHeight { get; set; }
 
         #endregion
-
+        
 
         #region Dependency Properties
 
@@ -165,6 +165,8 @@ namespace KinectFaces
         }
 
 
+        #region Events
+
         private void MainPage_Unloaded(object sender, RoutedEventArgs e)
         {
             if (this.bodyFrameReader != null)
@@ -188,6 +190,18 @@ namespace KinectFaces
             {
                 this.kinectSensor.Close();
                 this.kinectSensor = null;
+            }
+        }
+
+        private void Sensor_IsAvailableChanged(object sender, IsAvailableChangedEventArgs e)
+        {
+            if (!this.kinectSensor.IsAvailable)
+            {
+                this.StatusText = SensorNotAvailableStatusText;
+            }
+            else
+            {
+                this.StatusText = RunningStatusText;
             }
         }
 
@@ -225,8 +239,10 @@ namespace KinectFaces
             }
         }
 
-        // Update body data for each body that is tracked.
-        internal void UpdateBody(WindowsPreview.Kinect.Body body, int bodyIndex)
+        #endregion
+        
+        
+        private void UpdateBody(WindowsPreview.Kinect.Body body, int bodyIndex)
         {
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
             var jointPointsInDepthSpace = new Dictionary<JointType, Point>();
@@ -272,7 +288,6 @@ namespace KinectFaces
             }
         }
 
-        // Collapse the body from the canvas.
         private void ClearBody(int bodyIndex)
         {
             var bodyInfo = this.BodyInfos[bodyIndex];
@@ -286,13 +301,6 @@ namespace KinectFaces
             bodyInfo.HandRightEllipse.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
 
-        /// <summary>
-        /// Updates hand state ellipses depending on tracking state and it's confidence.
-        /// </summary>
-        /// <param name="ellipse">ellipse representing handstate</param>
-        /// <param name="handState">open, closed, or lasso</param>
-        /// <param name="trackingConfidence">confidence of handstate</param>
-        /// <param name="point">location of handjoint</param>
         private void UpdateHand(Ellipse ellipse, HandState handState, TrackingConfidence trackingConfidence, Point point)
         {
             ellipse.Fill = new SolidColorBrush(this.HandStateToColor(handState));
@@ -310,14 +318,6 @@ namespace KinectFaces
             }
         }
 
-        /// <summary>
-        /// Update a bone line.
-        /// </summary>
-        /// <param name="line">line representing a bone line</param>
-        /// <param name="startJoint">start joint of bone line</param>
-        /// <param name="endJoint">end joint of bone line</param>
-        /// <param name="startPoint">location of start joint</param>
-        /// <param name="endPoint">location of end joint</param>
         private void UpdateBone(Line line, Joint startJoint, Joint endJoint, Point startPoint, Point endPoint)
         {
             // don't draw if neither joints are tracked
@@ -344,7 +344,6 @@ namespace KinectFaces
             line.Y2 = endPoint.Y;
         }
 
-        // Select color of hand state
         private Color HandStateToColor(HandState handState)
         {
             switch (handState)
@@ -362,16 +361,13 @@ namespace KinectFaces
             return Colors.Transparent;
         }
 
-        // Instantiate new objects for joints and bone lines
         private void PopulateVisualObjects()
         {
             foreach (var bodyInfo in this.BodyInfos)
             {
-                // add left and right hand ellipses of all bodies to canvas
                 this.drawingCanvas.Children.Add(bodyInfo.HandLeftEllipse);
                 this.drawingCanvas.Children.Add(bodyInfo.HandRightEllipse);
-
-                // add bone lines of all bodies to canvas
+                
                 foreach (var bone in bodyInfo.Bones)
                 {
                     this.drawingCanvas.Children.Add(bodyInfo.BoneLines[bone]);
@@ -379,16 +375,5 @@ namespace KinectFaces
             }
         }
 
-        private void Sensor_IsAvailableChanged(object sender, IsAvailableChangedEventArgs e)
-        {
-            if (!this.kinectSensor.IsAvailable)
-            {
-                this.StatusText = SensorNotAvailableStatusText;
-            }
-            else
-            {
-                this.StatusText = RunningStatusText;
-            }
-        }
     }
 }
