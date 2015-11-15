@@ -19,88 +19,25 @@ namespace KinectFaces
         readonly string SensorNotAvailableStatusText = "Kinect not available!";
 
 
-        /// <summary>
-        /// Radius of drawn hand circles
-        /// </summary>
         private const double HighConfidenceHandSize = 40;
-
-        /// <summary>
-        /// Radius of drawn hand circles
-        /// </summary>
         private const double LowConfidenceHandSize = 20;
 
-        /// <summary>
-        /// Thickness of drawn joint lines
-        /// </summary>
-        private const double JointThickness = 8.0;
-
-        /// <summary>
-        /// Thickness of seen bone lines
-        /// </summary>
         private const double TrackedBoneThickness = 4.0;
-
-        /// <summary>
-        /// Thickness of inferred joint lines
-        /// </summary>
         private const double InferredBoneThickness = 1.0;
-
-        /// <summary>
-        /// Thickness of clip edge rectangles
-        /// </summary>
-        private const double ClipBoundsThickness = 5;
-
-        /// <summary>
-        /// Constant for clamping Z values of camera space points from being negative
-        /// </summary>
         private const float InferredZPositionClamp = 0.1f;
 
-        /// <summary>
-        /// Active Kinect sensor
-        /// </summary>
         private KinectSensor kinectSensor = null;
 
-        /// <summary>
-        /// Coordinate mapper to map one type of point to another
-        /// </summary>
         private CoordinateMapper coordinateMapper = null;
-
-        /// <summary>
-        /// Reader for body frames
-        /// </summary>
         private BodyFrameReader bodyFrameReader = null;
 
-        /// <summary>
-        /// Array for the bodies
-        /// </summary>
-        private Body[] bodies = null;
+        private WindowsPreview.Kinect.Body[] bodies = null;
 
-        /// <summary>
-        /// Current status text to display
-        /// </summary>
-        private string statusText = null;
-
-        /// <summary>
-        /// Main Canvas that contains all visual objects for all bodies and clipped edges
-        /// </summary>
         private Canvas drawingCanvas;
 
-        /// <summary>
-        /// List of BodyInfo objects for each potential body
-        /// </summary>
-        private BodyInfo[] BodyInfos;
+        private Body[] BodyInfos;
 
-        /// <summary>
-        /// List of colors for each body tracked
-        /// </summary>
         private List<Color> BodyColors;
-
-        /// <summary>
-        /// Clipped edges rectangles
-        /// </summary>
-        private Rectangle LeftClipEdge;
-        private Rectangle RightClipEdge;
-        private Rectangle TopClipEdge;
-        private Rectangle BottomClipEdge;
 
         private int BodyCount
         {
@@ -115,11 +52,11 @@ namespace KinectFaces
                 // creates instances of BodyInfo objects for potential number of bodies
                 if (this.BodyInfos == null || this.BodyInfos.Length != value)
                 {
-                    this.BodyInfos = new BodyInfo[value];
+                    this.BodyInfos = new Body[value];
 
                     for (int bodyIndex = 0; bodyIndex < this.bodies.Length; bodyIndex++)
                     {
-                        this.BodyInfos[bodyIndex] = new BodyInfo(this.BodyColors[bodyIndex]);
+                        this.BodyInfos[bodyIndex] = new Body(this.BodyColors[bodyIndex]);
                     }
                 }
             }
@@ -131,15 +68,9 @@ namespace KinectFaces
 
         private float JointSpaceHeight { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the MainPage class.
-        /// </summary>
         public MainPage()
         {
-            // one sensor is currently supported
             this.kinectSensor = KinectSensor.GetDefault();
-
-            // get the coordinate mapper
             this.coordinateMapper = this.kinectSensor.CoordinateMapper;
 
             // get the depth (display) extents
@@ -150,7 +81,7 @@ namespace KinectFaces
             this.JointSpaceHeight = frameDescription.Height;
 
             // get total number of bodies from BodyFrameSource
-            this.bodies = new Body[this.kinectSensor.BodyFrameSource.BodyCount];
+            this.bodies = new WindowsPreview.Kinect.Body[this.kinectSensor.BodyFrameSource.BodyCount];
 
             // open the reader for the body frames
             this.bodyFrameReader = this.kinectSensor.BodyFrameSource.OpenReader();
@@ -176,20 +107,13 @@ namespace KinectFaces
             // create ellipses and lines for drawing bodies
             this.BodyCount = this.kinectSensor.BodyFrameSource.BodyCount;
 
-            // Instantiate a new Canvas
             this.drawingCanvas = new Canvas();
-
-            // open the sensor
             this.kinectSensor.Open();
 
-            // set the status text
             this.StatusText = this.kinectSensor.IsAvailable ? RunningStatusText
                                                             : NoSensorStatusText;
 
-            // use the window object as the view model in this simple example
             this.DataContext = this;
-
-            // initialize the components (controls) of the window
             this.InitializeComponent();
 
             // set the clip rectangle to prevent rendering outside the canvas
@@ -203,28 +127,22 @@ namespace KinectFaces
             this.DisplayGrid.Children.Add(this.drawingCanvas);
         }
 
-        /// <summary>
-        /// INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
-        /// </summary>
+
         public event PropertyChangedEventHandler PropertyChanged;
 
-        /// <summary>
-        /// Gets or sets the current status text to display
-        /// </summary>
+        private string _StatusText = null;
         public string StatusText
         {
             get
             {
-                return this.statusText;
+                return this._StatusText;
             }
 
             set
             {
-                if (this.statusText != value)
+                if (this._StatusText != value)
                 {
-                    this.statusText = value;
-
-                    // notify any bound elements that the text has changed
+                    this._StatusText = value;
                     if (this.PropertyChanged != null)
                     {
                         this.PropertyChanged(this, new PropertyChangedEventArgs("StatusText"));
@@ -233,24 +151,17 @@ namespace KinectFaces
             }
         }
 
-        /// <summary>
-        /// Execute shutdown tasks
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
         private void MainPage_Unloaded(object sender, RoutedEventArgs e)
         {
             if (this.bodyFrameReader != null)
             {
-                // BodyFrameReder is IDisposable
                 this.bodyFrameReader.Dispose();
                 this.bodyFrameReader = null;
             }
 
-            // Body is IDisposable
             if (this.bodies != null)
             {
-                foreach (Body body in this.bodies)
+                foreach (WindowsPreview.Kinect.Body body in this.bodies)
                 {
                     if (body != null)
                     {
@@ -266,15 +177,10 @@ namespace KinectFaces
             }
         }
 
-        /// <summary>
-        /// Handles the body frame data arriving from the sensor
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
+        // Handles the body frame data arriving from the sensor
         private void Reader_BodyFrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
             bool dataReceived = false;
-            bool hasTrackedBody = false;
 
             using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame())
             {
@@ -292,28 +198,17 @@ namespace KinectFaces
                 // iterate through each body
                 for (int bodyIndex = 0; bodyIndex < this.bodies.Length; bodyIndex++)
                 {
-                    Body body = this.bodies[bodyIndex];
+                    WindowsPreview.Kinect.Body body = this.bodies[bodyIndex];
 
                     if (body.IsTracked)
                     {
-                        // check if this body clips an edge
-                        this.UpdateClippedEdges(body, hasTrackedBody);
-
                         this.UpdateBody(body, bodyIndex);
-
-                        hasTrackedBody = true;
                     }
                     else
                     {
                         // collapse this body from canvas as it goes out of view
                         this.ClearBody(bodyIndex);
                     }
-                }
-
-                if (!hasTrackedBody)
-                {
-                    // clear clipped edges if no bodies are tracked
-                    this.ClearClippedEdges();
                 }
             }
         }
@@ -337,7 +232,7 @@ namespace KinectFaces
         /// </summary>
         /// <param name="body">body for getting joint info</param>
         /// <param name="bodyIndex">index for body we are currently updating</param>
-        internal void UpdateBody(Body body, int bodyIndex)
+        internal void UpdateBody(WindowsPreview.Kinect.Body body, int bodyIndex)
         {
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
             var jointPointsInDepthSpace = new Dictionary<JointType, Point>();
@@ -360,9 +255,6 @@ namespace KinectFaces
                 // map joint position to depth space
                 DepthSpacePoint depthSpacePoint = coordinateMapper.MapCameraPointToDepthSpace(position);
                 jointPointsInDepthSpace[jointType] = new Point(depthSpacePoint.X, depthSpacePoint.Y);
-
-                // modify the joint's visibility and location
-                this.UpdateJoint(bodyInfo.JointPoints[jointType], joints[jointType], jointPointsInDepthSpace[jointType]);
 
                 // modify hand ellipse colors based on hand states
                 // modity hand ellipse sizes based on tracking confidences
@@ -393,12 +285,6 @@ namespace KinectFaces
         private void ClearBody(int bodyIndex)
         {
             var bodyInfo = this.BodyInfos[bodyIndex];
-
-            // collapse all joint ellipses
-            foreach (var joint in bodyInfo.JointPoints)
-            {
-                joint.Value.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
 
             // collapse all bone lines
             foreach (var bone in bodyInfo.Bones)
@@ -437,40 +323,6 @@ namespace KinectFaces
         }
 
         /// <summary>
-        /// Update a joint.
-        /// </summary>
-        /// <param name="ellipse"></param>
-        /// <param name="joint"></param>
-        /// <param name="point"></param>
-        private void UpdateJoint(Ellipse ellipse, Joint joint, Point point)
-        {
-            TrackingState trackingState = joint.TrackingState;
-
-            // only draw if joint is tracked or inferred
-            if (trackingState != TrackingState.NotTracked)
-            {
-                if (trackingState == TrackingState.Tracked)
-                {
-                    ellipse.Fill = new SolidColorBrush(Colors.Green);
-                }
-                else
-                {
-                    // inferred joints are yellow
-                    ellipse.Fill = new SolidColorBrush(Colors.Yellow);
-                }
-
-                Canvas.SetLeft(ellipse, point.X - JointThickness / 2);
-                Canvas.SetTop(ellipse, point.Y - JointThickness / 2);
-
-                ellipse.Visibility = Windows.UI.Xaml.Visibility.Visible;
-            }
-            else
-            {
-                ellipse.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
-        }
-
-        /// <summary>
         /// Update a bone line.
         /// </summary>
         /// <param name="line">line representing a bone line</param>
@@ -504,79 +356,7 @@ namespace KinectFaces
             line.Y2 = endPoint.Y;
         }
 
-        /// <summary>
-        /// Draws indicators to show which edges are clipping body data.
-        /// </summary>
-        /// <param name="body">body to draw clipping information for</param>
-        /// <param name="hasTrackedBody">bool to determine if another body is triggering a clipped edge</param>
-        private void UpdateClippedEdges(Body body, bool hasTrackedBody)
-        {
-            // BUG (waiting for confirmation): 
-            // Clip dectection works differently for top and right edges compared to left and bottom edges
-            // due to the current joint confidence model. This is an ST issue.
-            // Joints become inferred immediately as they touch the left/bottom edges and clip detection triggers.
-            // Joints squish on the right/top edges and clip detection doesn't trigger until more joints of 
-            // the body goes out of view (e.g all hand joints vs only handtip).
-
-            FrameEdges clippedEdges = body.ClippedEdges;
-
-            if (clippedEdges.HasFlag(FrameEdges.Left))
-            {
-                this.LeftClipEdge.Visibility = Windows.UI.Xaml.Visibility.Visible;
-            }
-            else if (!hasTrackedBody)
-            {
-                // don't clear this edge if another body is triggering clipped edge
-                this.LeftClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
-
-            if (clippedEdges.HasFlag(FrameEdges.Right))
-            {
-                this.RightClipEdge.Visibility = Windows.UI.Xaml.Visibility.Visible;
-            }
-            else if (!hasTrackedBody)
-            {
-                this.RightClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
-
-            if (clippedEdges.HasFlag(FrameEdges.Top))
-            {
-                this.TopClipEdge.Visibility = Windows.UI.Xaml.Visibility.Visible;
-            }
-            else if (!hasTrackedBody)
-            {
-                this.TopClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
-
-            if (clippedEdges.HasFlag(FrameEdges.Bottom))
-            {
-                this.BottomClipEdge.Visibility = Windows.UI.Xaml.Visibility.Visible;
-            }
-            else if (!hasTrackedBody)
-            {
-                this.BottomClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            }
-        }
-
-        /// <summary>
-        /// Clear all clipped edges.
-        /// </summary>
-        private void ClearClippedEdges()
-        {
-            this.LeftClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-
-            this.RightClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-
-            this.TopClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-
-            this.BottomClipEdge.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-        }
-
-        /// <summary>
-        /// Select color of hand state
-        /// </summary>
-        /// <param name="handState"></param>
-        /// <returns></returns>
+        // Select color of hand state
         private Color HandStateToColor(HandState handState)
         {
             switch (handState)
@@ -594,55 +374,14 @@ namespace KinectFaces
             return Colors.Transparent;
         }
 
-        /// <summary>
-        /// Instantiate new objects for joints, bone lines, and clipped edge rectangles
-        /// </summary>
+        // Instantiate new objects for joints and bone lines
         private void PopulateVisualObjects()
         {
-            // create clipped edges and set to collapsed initially
-            this.LeftClipEdge = new Rectangle()
-            {
-                Fill = new SolidColorBrush(Colors.Red),
-                Width = ClipBoundsThickness,
-                Height = this.DisplayGrid.Height,
-                Visibility = Windows.UI.Xaml.Visibility.Collapsed
-            };
-
-            this.RightClipEdge = new Rectangle()
-            {
-                Fill = new SolidColorBrush(Colors.Red),
-                Width = ClipBoundsThickness,
-                Height = this.DisplayGrid.Height,
-                Visibility = Windows.UI.Xaml.Visibility.Collapsed
-            };
-
-            this.TopClipEdge = new Rectangle()
-            {
-                Fill = new SolidColorBrush(Colors.Red),
-                Width = this.DisplayGrid.Width,
-                Height = ClipBoundsThickness,
-                Visibility = Windows.UI.Xaml.Visibility.Collapsed
-            };
-
-            this.BottomClipEdge = new Rectangle()
-            {
-                Fill = new SolidColorBrush(Colors.Red),
-                Width = this.DisplayGrid.Width,
-                Height = ClipBoundsThickness,
-                Visibility = Windows.UI.Xaml.Visibility.Collapsed
-            };
-
             foreach (var bodyInfo in this.BodyInfos)
             {
                 // add left and right hand ellipses of all bodies to canvas
                 this.drawingCanvas.Children.Add(bodyInfo.HandLeftEllipse);
                 this.drawingCanvas.Children.Add(bodyInfo.HandRightEllipse);
-
-                // add joint ellipses of all bodies to canvas
-                foreach (var joint in bodyInfo.JointPoints)
-                {
-                    this.drawingCanvas.Children.Add(joint.Value);
-                }
 
                 // add bone lines of all bodies to canvas
                 foreach (var bone in bodyInfo.Bones)
@@ -650,28 +389,10 @@ namespace KinectFaces
                     this.drawingCanvas.Children.Add(bodyInfo.BoneLines[bone]);
                 }
             }
-
-            // add clipped edges rectanges to main canvas
-            this.drawingCanvas.Children.Add(this.LeftClipEdge);
-            this.drawingCanvas.Children.Add(this.RightClipEdge);
-            this.drawingCanvas.Children.Add(this.TopClipEdge);
-            this.drawingCanvas.Children.Add(this.BottomClipEdge);
-
-            // position the clipped edges
-            Canvas.SetLeft(this.LeftClipEdge, 0);
-            Canvas.SetTop(this.LeftClipEdge, 0);
-            Canvas.SetLeft(this.RightClipEdge, this.DisplayGrid.Width - ClipBoundsThickness);
-            Canvas.SetTop(this.RightClipEdge, 0);
-            Canvas.SetLeft(this.TopClipEdge, 0);
-            Canvas.SetTop(this.TopClipEdge, 0);
-            Canvas.SetLeft(this.BottomClipEdge, 0);
-            Canvas.SetTop(this.BottomClipEdge, this.DisplayGrid.Height - ClipBoundsThickness);
         }
 
-        /// <summary>
-        /// BodyInfo class that contains joint ellipses, handstate ellipses, lines for bones between two joints.
-        /// </summary>
-        private class BodyInfo
+        // BodyInfo class that contains handstate ellipses and lines for bones between two joints.
+        private class Body
         {
             public bool Updated { get; set; }
 
@@ -683,16 +404,13 @@ namespace KinectFaces
             // ellipse representing right handstate
             public Ellipse HandRightEllipse { get; set; }
 
-            // dictionary of all joints in a body
-            public Dictionary<JointType, Ellipse> JointPoints { get; private set; }
-
             // definition of bones
             public TupleList<JointType, JointType> Bones { get; private set; }
 
             // collection of bones associated with the line object
             public Dictionary<Tuple<JointType, JointType>, Line> BoneLines { get; private set; }
 
-            public BodyInfo(Color bodyColor)
+            public Body(Color bodyColor)
             {
                 this.BodyColor = bodyColor;
 
@@ -706,21 +424,6 @@ namespace KinectFaces
                 {
                     Visibility = Windows.UI.Xaml.Visibility.Collapsed
                 };
-
-                // a joint defined as a jointType with a point location in XY space represented by an ellipse
-                this.JointPoints = new Dictionary<JointType, Ellipse>();
-
-                // pre-populate list of joints and set to non-visible initially
-                foreach (JointType jointType in Enum.GetValues(typeof(JointType)))
-                {
-                    this.JointPoints.Add(jointType, new Ellipse()
-                    {
-                        Visibility = Windows.UI.Xaml.Visibility.Collapsed,
-                        Fill = new SolidColorBrush(BodyColor),
-                        Width = JointThickness,
-                        Height = JointThickness
-                    });
-                }
 
                 // collection of bones
                 this.BoneLines = new Dictionary<Tuple<JointType, JointType>, Line>();
@@ -783,14 +486,8 @@ namespace KinectFaces
             }
         }
 
-        /// <summary>
-        /// Handles the event which the sensor becomes unavailable (E.g. paused, closed, unplugged).
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
         private void Sensor_IsAvailableChanged(object sender, IsAvailableChangedEventArgs e)
         {
-            // on failure, set the status text
             if (!this.kinectSensor.IsAvailable)
             {
                 this.StatusText = SensorNotAvailableStatusText;
