@@ -1,0 +1,17 @@
+﻿<Application x:Class="KinectFaces.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:KinectFaces">
+
+    <Application.Resources>
+
+        <ImageBrush x:Key="ApplicationPageBackgroundThemeBrush"
+                    ImageSource="Assets/background.png"
+                    Stretch="UniformToFill" />
+
+        <FontFamily x:Key="SymbolThemeFontFamily">Segoe UI Symbol</FontFamily>
+        <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI</FontFamily>
+
+
+    </Application.Resources>
+</Application>
