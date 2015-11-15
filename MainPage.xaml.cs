@@ -19,25 +19,25 @@ namespace KinectFaces
         readonly string SensorNotAvailableStatusText = "Kinect not available!";
 
 
-        private const double HighConfidenceHandSize = 40;
-        private const double LowConfidenceHandSize = 20;
+        readonly double HighConfidenceHandSize = 40;
+        readonly double LowConfidenceHandSize = 20;
 
-        private const double TrackedBoneThickness = 4.0;
-        private const double InferredBoneThickness = 1.0;
-        private const float InferredZPositionClamp = 0.1f;
+        readonly double TrackedBoneThickness = 4.0;
+        readonly double InferredBoneThickness = 1.0;
+        readonly float InferredZPositionClamp = 0.1f;
 
-        private KinectSensor kinectSensor = null;
+        KinectSensor kinectSensor = null;
 
-        private CoordinateMapper coordinateMapper = null;
-        private BodyFrameReader bodyFrameReader = null;
+        CoordinateMapper coordinateMapper = null;
+        BodyFrameReader bodyFrameReader = null;
 
-        private WindowsPreview.Kinect.Body[] bodies = null;
+        WindowsPreview.Kinect.Body[] bodies = null;
 
-        private Canvas drawingCanvas;
+        Canvas drawingCanvas;
 
-        private Body[] BodyInfos;
+        Body[] BodyInfos;
 
-        private List<Color> BodyColors;
+        List<Color> BodyColors;
 
         private int BodyCount
         {
