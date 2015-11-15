@@ -14,17 +14,23 @@ namespace KinectFaces
     public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
 
+        #region Constants
+
         readonly string NoSensorStatusText = "No ready Kinect found!";
         readonly string RunningStatusText = "Running";
         readonly string SensorNotAvailableStatusText = "Kinect not available!";
-
 
         readonly double HighConfidenceHandSize = 40;
         readonly double LowConfidenceHandSize = 20;
 
         readonly double TrackedBoneThickness = 4.0;
         readonly double InferredBoneThickness = 1.0;
-        readonly float InferredZPositionClamp = 0.1f;
+        readonly float InferredZPositionClamp = 0.1f; 
+
+        #endregion
+        
+
+        #region Properties
 
         KinectSensor kinectSensor = null;
 
@@ -39,7 +45,7 @@ namespace KinectFaces
 
         List<Color> BodyColors;
 
-        private int BodyCount
+        public int BodyCount
         {
             set
             {
@@ -67,6 +73,37 @@ namespace KinectFaces
         private float JointSpaceWidth { get; set; }
 
         private float JointSpaceHeight { get; set; }
+
+        #endregion
+
+
+        #region Dependency Properties
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private string _StatusText = null;
+        public string StatusText
+        {
+            get
+            {
+                return this._StatusText;
+            }
+
+            set
+            {
+                if (this._StatusText != value)
+                {
+                    this._StatusText = value;
+                    if (this.PropertyChanged != null)
+                    {
+                        this.PropertyChanged(this, new PropertyChangedEventArgs("StatusText"));
+                    }
+                }
+            }
+        }
+
+        #endregion
+
 
         public MainPage()
         {
@@ -128,29 +165,6 @@ namespace KinectFaces
         }
 
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private string _StatusText = null;
-        public string StatusText
-        {
-            get
-            {
-                return this._StatusText;
-            }
-
-            set
-            {
-                if (this._StatusText != value)
-                {
-                    this._StatusText = value;
-                    if (this.PropertyChanged != null)
-                    {
-                        this.PropertyChanged(this, new PropertyChangedEventArgs("StatusText"));
-                    }
-                }
-            }
-        }
-
         private void MainPage_Unloaded(object sender, RoutedEventArgs e)
         {
             if (this.bodyFrameReader != null)
@@ -193,8 +207,6 @@ namespace KinectFaces
 
             if (dataReceived)
             {
-                this.BeginBodiesUpdate();
-
                 // iterate through each body
                 for (int bodyIndex = 0; bodyIndex < this.bodies.Length; bodyIndex++)
                 {
@@ -213,25 +225,7 @@ namespace KinectFaces
             }
         }
 
-        /// <summary>
-        /// Clear update status of all bodies
-        /// </summary>
-        internal void BeginBodiesUpdate()
-        {
-            if (this.BodyInfos != null)
-            {
-                foreach (var bodyInfo in this.BodyInfos)
-                {
-                    bodyInfo.Updated = false;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Update body data for each body that is tracked.
-        /// </summary>
-        /// <param name="body">body for getting joint info</param>
-        /// <param name="bodyIndex">index for body we are currently updating</param>
+        // Update body data for each body that is tracked.
         internal void UpdateBody(WindowsPreview.Kinect.Body body, int bodyIndex)
         {
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
@@ -278,23 +272,17 @@ namespace KinectFaces
             }
         }
 
-        /// <summary>
-        /// Collapse the body from the canvas.
-        /// </summary>
-        /// <param name="bodyIndex"></param>
+        // Collapse the body from the canvas.
         private void ClearBody(int bodyIndex)
         {
             var bodyInfo = this.BodyInfos[bodyIndex];
 
-            // collapse all bone lines
             foreach (var bone in bodyInfo.Bones)
             {
                 bodyInfo.BoneLines[bone].Visibility = Windows.UI.Xaml.Visibility.Collapsed;
             }
 
-            // collapse handstate ellipses
             bodyInfo.HandLeftEllipse.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-
             bodyInfo.HandRightEllipse.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
 
@@ -388,101 +376,6 @@ namespace KinectFaces
                 {
                     this.drawingCanvas.Children.Add(bodyInfo.BoneLines[bone]);
                 }
-            }
-        }
-
-        // BodyInfo class that contains handstate ellipses and lines for bones between two joints.
-        private class Body
-        {
-            public bool Updated { get; set; }
-
-            public Color BodyColor { get; set; }
-
-            // ellipse representing left handstate
-            public Ellipse HandLeftEllipse { get; set; }
-
-            // ellipse representing right handstate
-            public Ellipse HandRightEllipse { get; set; }
-
-            // definition of bones
-            public TupleList<JointType, JointType> Bones { get; private set; }
-
-            // collection of bones associated with the line object
-            public Dictionary<Tuple<JointType, JointType>, Line> BoneLines { get; private set; }
-
-            public Body(Color bodyColor)
-            {
-                this.BodyColor = bodyColor;
-
-                // create hand state ellipses
-                this.HandLeftEllipse = new Ellipse()
-                {
-                    Visibility = Windows.UI.Xaml.Visibility.Collapsed
-                };
-
-                this.HandRightEllipse = new Ellipse()
-                {
-                    Visibility = Windows.UI.Xaml.Visibility.Collapsed
-                };
-
-                // collection of bones
-                this.BoneLines = new Dictionary<Tuple<JointType, JointType>, Line>();
-
-                // a bone defined as a line between two joints
-                this.Bones = new TupleList<JointType, JointType>
-                {
-                    // Torso
-                    { JointType.Head, JointType.Neck },
-                    { JointType.Neck, JointType.SpineShoulder },
-                    { JointType.SpineShoulder, JointType.SpineMid },
-                    { JointType.SpineMid, JointType.SpineBase },
-                    { JointType.SpineShoulder, JointType.ShoulderRight },
-                    { JointType.SpineShoulder, JointType.ShoulderLeft },
-                    { JointType.SpineBase, JointType.HipRight },
-                    { JointType.SpineBase, JointType.HipLeft },
-
-                    // Right Arm
-                    { JointType.ShoulderRight, JointType.ElbowRight },
-                    { JointType.ElbowRight, JointType.WristRight },
-                    { JointType.WristRight, JointType.HandRight },
-                    { JointType.HandRight, JointType.HandTipRight },
-                    { JointType.WristRight, JointType.ThumbRight },
-
-                    // Left Arm
-                    { JointType.ShoulderLeft, JointType.ElbowLeft },
-                    { JointType.ElbowLeft, JointType.WristLeft },
-                    { JointType.WristLeft, JointType.HandLeft },
-                    { JointType.HandLeft, JointType.HandTipLeft },
-                    { JointType.WristLeft, JointType.ThumbLeft },
-
-                    // Right Leg
-                    { JointType.HipRight, JointType.KneeRight },
-                    { JointType.KneeRight, JointType.AnkleRight },
-                    { JointType.AnkleRight, JointType.FootRight },
-                
-                    // Left Leg
-                    { JointType.HipLeft, JointType.KneeLeft },
-                    { JointType.KneeLeft, JointType.AnkleLeft },
-                    { JointType.AnkleLeft, JointType.FootLeft },
-                };
-
-                // pre-populate list of bones that are non-visible initially
-                foreach (var bone in this.Bones)
-                {
-                    this.BoneLines.Add(bone, new Line()
-                    {
-                        Stroke = new SolidColorBrush(BodyColor),
-                        Visibility = Visibility.Collapsed
-                    });
-                }
-            }
-        }
-
-        private class TupleList<T1, T2> : List<Tuple<T1, T2>>
-        {
-            public void Add(T1 item, T2 item2)
-            {
-                this.Add(new Tuple<T1, T2>(item, item2));
             }
         }
 
