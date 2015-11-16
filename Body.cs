@@ -38,6 +38,8 @@ namespace KinectFaces
             canvas.Style = Application.Current.Resources["ThumbsUpCanvas"] as Style;
 
             var path = new Path();
+            path.Fill = new SolidColorBrush(BodyColor);
+
             if(isLeft)
             {
                 path.Style = Application.Current.Resources["ThumbsUpRight"] as Style;
@@ -80,15 +82,15 @@ namespace KinectFaces
                     { JointType.ShoulderRight, JointType.ElbowRight },
                     { JointType.ElbowRight, JointType.WristRight },
                     { JointType.WristRight, JointType.HandRight },
-                    { JointType.HandRight, JointType.HandTipRight },
-                    { JointType.WristRight, JointType.ThumbRight },
+                    //{ JointType.HandRight, JointType.HandTipRight },
+                    //{ JointType.WristRight, JointType.ThumbRight },
 
                     // Left Arm
                     { JointType.ShoulderLeft, JointType.ElbowLeft },
                     { JointType.ElbowLeft, JointType.WristLeft },
                     { JointType.WristLeft, JointType.HandLeft },
-                    { JointType.HandLeft, JointType.HandTipLeft },
-                    { JointType.WristLeft, JointType.ThumbLeft },
+                    //{ JointType.HandLeft, JointType.HandTipLeft },
+                    //{ JointType.WristLeft, JointType.ThumbLeft },
 
                     // Right Leg
                     { JointType.HipRight, JointType.KneeRight },
