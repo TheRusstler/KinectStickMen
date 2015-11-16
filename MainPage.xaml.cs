@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Kinect.Face;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Windows.Foundation;
@@ -25,10 +26,10 @@ namespace KinectFaces
 
         readonly double TrackedBoneThickness = 4.0;
         readonly double InferredBoneThickness = 1.0;
-        readonly float InferredZPositionClamp = 0.1f; 
+        readonly float InferredZPositionClamp = 0.1f;
 
         #endregion
-        
+
 
         #region Properties
 
@@ -42,6 +43,12 @@ namespace KinectFaces
         Canvas drawingCanvas;
 
         Body[] BodyInfos;
+
+        FaceFrameSource[] faceFrameSources = null;
+        FaceFrameReader[] faceFrameReaders = null;
+        FaceFrameResult[] faceFrameResults = null;
+
+        int displayWidth, displayHeight;
 
         List<Color> BodyColors;
 
@@ -70,12 +77,8 @@ namespace KinectFaces
             get { return this.BodyInfos == null ? 0 : this.BodyInfos.Length; }
         }
 
-        private float JointSpaceWidth { get; set; }
-
-        private float JointSpaceHeight { get; set; }
-
         #endregion
-        
+
 
         #region Dependency Properties
 
@@ -113,10 +116,6 @@ namespace KinectFaces
             // get the depth (display) extents
             FrameDescription frameDescription = this.kinectSensor.DepthFrameSource.FrameDescription;
 
-            // get size of joint space
-            this.JointSpaceWidth = frameDescription.Width;
-            this.JointSpaceHeight = frameDescription.Height;
-
             // get total number of bodies from BodyFrameSource
             this.bodies = new WindowsPreview.Kinect.Body[this.kinectSensor.BodyFrameSource.BodyCount];
 
@@ -140,9 +139,36 @@ namespace KinectFaces
                 Colors.Violet
             };
 
-            // sets total number of possible tracked bodies
-            // create ellipses and lines for drawing bodies
             this.BodyCount = this.kinectSensor.BodyFrameSource.BodyCount;
+
+
+            // Face tracking
+            // specify the required face frame results
+            FaceFrameFeatures faceFrameFeatures =
+                FaceFrameFeatures.BoundingBoxInColorSpace
+                | FaceFrameFeatures.PointsInColorSpace
+                | FaceFrameFeatures.RotationOrientation
+                | FaceFrameFeatures.FaceEngagement
+                | FaceFrameFeatures.Glasses
+                | FaceFrameFeatures.Happy
+                | FaceFrameFeatures.LeftEyeClosed
+                | FaceFrameFeatures.RightEyeClosed
+                | FaceFrameFeatures.LookingAway
+                | FaceFrameFeatures.MouthMoved
+                | FaceFrameFeatures.MouthOpen;
+
+            // create a face frame source + reader to track each face in the FOV
+            this.faceFrameSources = new FaceFrameSource[this.BodyCount];
+            this.faceFrameReaders = new FaceFrameReader[this.BodyCount];
+            for (int i = 0; i < this.BodyCount; i++)
+            {
+                this.faceFrameSources[i] = new FaceFrameSource(this.kinectSensor, 0, faceFrameFeatures);
+                this.faceFrameReaders[i] = this.faceFrameSources[i].OpenReader();
+            }
+
+            this.faceFrameResults = new FaceFrameResult[this.BodyCount];
+
+
 
             this.drawingCanvas = new Canvas();
             this.kinectSensor.Open();
@@ -167,6 +193,22 @@ namespace KinectFaces
 
         #region Events
 
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < this.BodyCount; i++)
+            {
+                if (this.faceFrameReaders[i] != null)
+                {
+                    this.faceFrameReaders[i].FrameArrived += this.Reader_FaceFrameArrived;
+                }
+            }
+
+            if (this.bodyFrameReader != null)
+            {
+                this.bodyFrameReader.FrameArrived += this.Reader_BodyFrameArrived;
+            }
+        }
+
         private void MainPage_Unloaded(object sender, RoutedEventArgs e)
         {
             if (this.bodyFrameReader != null)
@@ -177,11 +219,23 @@ namespace KinectFaces
 
             if (this.bodies != null)
             {
-                foreach (WindowsPreview.Kinect.Body body in this.bodies)
+                for (int i = 0; i < BodyCount; i++)
                 {
-                    if (body != null)
+                    if (bodies[i] != null)
                     {
-                        body.Dispose();
+                        bodies[i].Dispose();
+                    }
+
+
+                    if (this.faceFrameReaders[i] != null)
+                    {
+                        this.faceFrameReaders[i].Dispose();
+                        this.faceFrameReaders[i] = null;
+                    }
+
+                    if (this.faceFrameSources[i] != null)
+                    {
+                        this.faceFrameSources[i] = null;
                     }
                 }
             }
@@ -205,7 +259,6 @@ namespace KinectFaces
             }
         }
 
-        // Handles the body frame data arriving from the sensor
         private void Reader_BodyFrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
             bool dataReceived = false;
@@ -221,7 +274,6 @@ namespace KinectFaces
 
             if (dataReceived)
             {
-                // iterate through each body
                 for (int bodyIndex = 0; bodyIndex < this.bodies.Length; bodyIndex++)
                 {
                     WindowsPreview.Kinect.Body body = this.bodies[bodyIndex];
@@ -232,16 +284,70 @@ namespace KinectFaces
                     }
                     else
                     {
-                        // collapse this body from canvas as it goes out of view
                         this.ClearBody(bodyIndex);
                     }
                 }
             }
         }
 
+        private void Reader_FaceFrameArrived(object sender, FaceFrameArrivedEventArgs e)
+        {
+            using (FaceFrame faceFrame = e.FrameReference.AcquireFrame())
+            {
+                if (faceFrame != null)
+                {
+                    // get the index of the face source from the face source array
+                    int index = this.GetFaceSourceIndex(faceFrame.FaceFrameSource);
+
+                    // check if this face frame has valid face frame results
+                    if (this.ValidateFaceBoxAndPoints(faceFrame.FaceFrameResult))
+                    {
+                        // store this face frame result to draw later
+                        this.faceFrameResults[index] = faceFrame.FaceFrameResult;
+                    }
+                    else
+                    {
+                        // indicates that the latest face frame result from this reader is invalid
+                        this.faceFrameResults[index] = null;
+                    }
+                }
+            }
+        }
+
         #endregion
-        
-        
+
+        //private void DrawFace(FrameworkElement face, )
+        //{
+        //    CoordinateMapper coordinateMapper = this.kinectSensor.CoordinateMapper;
+
+        //    Brush drawingBrush = new SolidColorBrush(this.BodyColors[0]);
+
+        //    //var facePoints = faceResult.;
+        //    //;
+        //    //CameraSpacePoint point = facePoints[FacePointType.Nose].
+        //    //faceResult.FacePointsInColorSpace
+
+        //    //CameraSpacePoint cameraPoint = new CameraSpacePoint();
+        //    //cameraPoint.X = faceBox.Right - faceBox.Left;
+        //    //cameraPoint.Y = faceBox.Top - faceBox.Bottom;
+        //    //faceBox.
+
+        //    //DepthSpacePoint depthSpacePoint = coordinateMapper.MapCameraPointToDepthSpace(.;
+
+
+        //    //var rect = new Rectangle();
+        //    //rect.Fill = drawingBrush;
+        //    //rect.Width = faceBox.Right - faceBox.Left;
+        //    //rect.Height = faceBox.Bottom - faceBox.Top;
+        //    //rect.Margin = new Thickness(faceBox.Left, faceBox.Top, 0, 0);
+        //    //this.drawingCanvas.Children.Add(rect);
+        //}
+
+        private void DrawFace(FrameworkElement face, FaceFrameResult faceFrameResult, Point point)
+        {
+            face.Visibility = Visibility.Visible;
+        }
+
         private void UpdateBody(WindowsPreview.Kinect.Body body, int bodyIndex)
         {
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
@@ -261,10 +367,32 @@ namespace KinectFaces
 
                 DepthSpacePoint depthSpacePoint = coordinateMapper.MapCameraPointToDepthSpace(position);
                 jointPointsInDepthSpace[jointType] = new Point(depthSpacePoint.X, depthSpacePoint.Y);
-                
-                if(jointType == JointType.Head)
+
+                if (jointType == JointType.Head)
                 {
-                    this.UpdateHead();
+                    // Face
+                    if (this.faceFrameSources[bodyIndex].IsTrackingIdValid)
+                    {
+                        if (this.faceFrameResults[bodyIndex] != null)
+                        {
+                            this.UpdateHand(bodyInfo.Face, HandState.Lasso, TrackingConfidence.High, jointPointsInDepthSpace[jointType]);
+                            // Draw facial properties
+                            //this.DrawFace(bodyInfo.Face, this.faceFrameResults[bodyIndex], jointPointsInDepthSpace[jointType]);
+                            //this.DrawFace(bodyIndex, this.faceFrameResults[bodyIndex]);
+                        }
+                        else
+                        {
+                            // TODO: Draw plain face.
+                        }
+                    }
+                    else
+                    {
+                        if (this.bodies[bodyIndex].IsTracked)
+                        {
+                            this.faceFrameSources[bodyIndex].TrackingId = this.bodies[bodyIndex].TrackingId;
+                        }
+                        // TODO: Draw plain face.
+                    }
                 }
 
                 if (jointType == JointType.HandRight)
@@ -293,15 +421,8 @@ namespace KinectFaces
 
         private void UpdateHand(FrameworkElement thumbsUp, HandState handState, TrackingConfidence trackingConfidence, Point point)
         {
-            var visibility = Visibility.Collapsed;
+            thumbsUp.Visibility = (handState == HandState.Lasso) ? Visibility.Visible : Visibility.Collapsed;
 
-            if (trackingConfidence == TrackingConfidence.High)
-            {
-                visibility = (handState == HandState.Lasso) ? Visibility.Visible : Visibility.Collapsed;
-            }
-
-            thumbsUp.Visibility = visibility;
-            
             if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
             {
                 Canvas.SetLeft(thumbsUp, point.X - thumbsUp.Width / 2);
@@ -335,18 +456,44 @@ namespace KinectFaces
             line.Y2 = endPoint.Y;
         }
 
+
+        #region Utils
+
         private void PopulateVisualObjects()
         {
             foreach (var bodyInfo in this.BodyInfos)
             {
+                this.drawingCanvas.Children.Add(bodyInfo.Face);
                 this.drawingCanvas.Children.Add(bodyInfo.HandLeftThumbsUp);
                 this.drawingCanvas.Children.Add(bodyInfo.HandRightThumbsUp);
-                
+
                 foreach (var bone in bodyInfo.Bones)
                 {
                     this.drawingCanvas.Children.Add(bodyInfo.BoneLines[bone]);
                 }
             }
+        }
+
+        private int GetFaceSourceIndex(FaceFrameSource faceFrameSource)
+        {
+            int index = -1;
+
+            for (int i = 0; i < this.BodyCount; i++)
+            {
+                if (this.faceFrameSources[i] == faceFrameSource)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            return index;
+        }
+
+        private bool ValidateFaceBoxAndPoints(FaceFrameResult faceResult)
+        {
+            bool isFaceValid = faceResult != null;
+            return isFaceValid;
         }
 
         private void ClearBody(int bodyIndex)
@@ -358,8 +505,11 @@ namespace KinectFaces
                 bodyInfo.BoneLines[bone].Visibility = Windows.UI.Xaml.Visibility.Collapsed;
             }
 
+            bodyInfo.Face.Visibility = Visibility.Collapsed;
             bodyInfo.HandLeftThumbsUp.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
             bodyInfo.HandRightThumbsUp.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
+
+        #endregion
     }
 }

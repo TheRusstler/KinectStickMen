@@ -22,6 +22,8 @@ namespace KinectFaces
     {
         public Color BodyColor { get; set; }
 
+        public FrameworkElement Face { get; set; }
+
         public FrameworkElement HandLeftThumbsUp { get; set; }
         public FrameworkElement HandRightThumbsUp { get; set; }
         
@@ -56,12 +58,25 @@ namespace KinectFaces
             return vb;
         }
 
+        public FrameworkElement GetFace()
+        {
+            var canvas = new Canvas();
+            canvas.Width = 50;
+            canvas.Height = 50;
+            canvas.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+            canvas.Visibility = Visibility.Visible;
+            Canvas.SetTop(canvas, 500);
+            Canvas.SetLeft(canvas, 500);
+            return canvas;
+        }
+
         public Body(Color bodyColor)
         {
             this.BodyColor = bodyColor;
 
             this.HandLeftThumbsUp = GetHand(true);
             this.HandRightThumbsUp = GetHand(false);
+            this.Face = GetFace();
 
             this.BoneLines = new Dictionary<Tuple<JointType, JointType>, Line>();
 
