@@ -375,14 +375,11 @@ namespace KinectFaces
                     {
                         if (this.faceFrameResults[bodyIndex] != null)
                         {
-                            this.UpdateHand(bodyInfo.Face, HandState.Lasso, TrackingConfidence.High, jointPointsInDepthSpace[jointType]);
-                            // Draw facial properties
-                            //this.DrawFace(bodyInfo.Face, this.faceFrameResults[bodyIndex], jointPointsInDepthSpace[jointType]);
-                            //this.DrawFace(bodyIndex, this.faceFrameResults[bodyIndex]);
+                            this.UpdateHead(bodyInfo.Face, bodyInfo, this.faceFrameResults[bodyIndex], jointPointsInDepthSpace[jointType]);
                         }
                         else
                         {
-                            // TODO: Draw plain face.
+                            this.UpdateHead(bodyInfo.Face, bodyInfo, null, jointPointsInDepthSpace[jointType]);
                         }
                     }
                     else
@@ -391,7 +388,7 @@ namespace KinectFaces
                         {
                             this.faceFrameSources[bodyIndex].TrackingId = this.bodies[bodyIndex].TrackingId;
                         }
-                        // TODO: Draw plain face.
+                        this.UpdateHead(bodyInfo.Face, bodyInfo, null, jointPointsInDepthSpace[jointType]);
                     }
                 }
 
@@ -414,9 +411,22 @@ namespace KinectFaces
             }
         }
 
-        private void UpdateHead()
+        private void UpdateHead(FrameworkElement face, Body body, FaceFrameResult faceResult, Point point)
         {
+            face.Visibility = Visibility.Visible;
 
+            if(faceResult != null)
+            {
+                var box = faceResult.FaceBoundingBoxInColorSpace;
+                face.Width = body.FaceWidth.Update(box.Right - box.Left);
+                face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
+            }
+
+            if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
+            {
+                Canvas.SetLeft(face, point.X - face.Width / 2);
+                Canvas.SetTop(face, point.Y - face.Width / 2);
+            }
         }
 
         private void UpdateHand(FrameworkElement thumbsUp, HandState handState, TrackingConfidence trackingConfidence, Point point)

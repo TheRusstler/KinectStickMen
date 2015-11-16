@@ -4,7 +4,6 @@ using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Shapes;
 using WindowsPreview.Kinect;
 
@@ -24,9 +23,11 @@ namespace KinectFaces
 
         public FrameworkElement Face { get; set; }
 
+        public KalamanDouble FaceWidth = new KalamanDouble(), FaceHeight = new KalamanDouble();
+
         public FrameworkElement HandLeftThumbsUp { get; set; }
         public FrameworkElement HandRightThumbsUp { get; set; }
-        
+
         public TupleList<JointType, JointType> Bones { get; private set; }
         public Dictionary<Tuple<JointType, JointType>, Line> BoneLines { get; private set; }
 
@@ -42,7 +43,7 @@ namespace KinectFaces
             var path = new Path();
             path.Fill = new SolidColorBrush(BodyColor);
 
-            if(isLeft)
+            if (isLeft)
             {
                 path.Style = Application.Current.Resources["ThumbsUpRight"] as Style;
             }
