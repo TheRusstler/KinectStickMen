@@ -116,23 +116,9 @@ namespace KinectFaces
         public FrameworkElement GetMouth(bool isSmile)
         {
             var canvas = (this.Face as Viewbox).Child as Canvas;
-
-            Shape mouth;
-
-            if(isSmile)
-            {
-                mouth = new Path();
-                mouth.Style = Application.Current.Resources["Smile"] as Style;
-                mouth.Stroke = new SolidColorBrush(BodyColor);
-            }
-            else
-            {
-                mouth = new Rectangle();
-                (mouth as Shape).Fill = new SolidColorBrush(BodyColor);
-                Canvas.SetTop(mouth, 300);
-                Canvas.SetLeft(mouth, canvas.Width / 2 - mouth.Width / 2);
-            }
-
+            Shape mouth = new Path();
+            mouth.Style = isSmile ? Application.Current.Resources["Smile"] as Style : Application.Current.Resources["PlainMouth"] as Style;
+            mouth.Stroke = new SolidColorBrush(BodyColor);
             canvas.Children.Add(mouth);
             return mouth;
         }

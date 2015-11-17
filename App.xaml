@@ -60,6 +60,19 @@
             <Setter Property="Width" Value="155" />
         </Style>
 
+        <Style x:Key="PlainMouth" TargetType="Path">
+            <Setter Property="Data" Value="M605,460 L755,460" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="Stretch" Value="Fill" />
+            <Setter Property="StrokeThickness" Value="15" />
+            <Setter Property="StrokeMiterLimit" Value="4" />
+            <Setter Property="UseLayoutRounding" Value="False" />
+            <Setter Property="Canvas.Left" Value="129" />
+            <Setter Property="Canvas.Top" Value="285" />
+            <Setter Property="Width" Value="145" />
+        </Style>
+
+
         <Style x:Key="EyeOpen" TargetType="Ellipse">
             <Setter Property="Width" Value="40" />
             <Setter Property="Height" Value="40" />
