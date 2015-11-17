@@ -424,8 +424,8 @@ namespace KinectFaces
 
             if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
             {
-                Canvas.SetLeft(face, point.X - face.Width / 2);
-                Canvas.SetTop(face, point.Y - face.Width / 2);
+                Canvas.SetLeft(face, point.X - face.Width / 2  +20);
+                Canvas.SetTop(face, point.Y - face.Height / 2);
             }
         }
 
@@ -436,7 +436,7 @@ namespace KinectFaces
             if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
             {
                 Canvas.SetLeft(thumbsUp, point.X - thumbsUp.Width / 2);
-                Canvas.SetTop(thumbsUp, point.Y - thumbsUp.Width / 2);
+                Canvas.SetTop(thumbsUp, point.Y - thumbsUp.Height / 2);
             }
         }
 

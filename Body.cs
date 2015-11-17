@@ -61,14 +61,31 @@ namespace KinectFaces
 
         public FrameworkElement GetFace()
         {
+            //var canvas = new Canvas();
+            //canvas.Width = 50;
+            //canvas.Height = 50;
+            //canvas.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+            //canvas.Visibility = Visibility.Visible;
+            //Canvas.SetTop(canvas, 500);
+            //Canvas.SetLeft(canvas, 500);
+            //return canvas;
+
+            var vb = new Viewbox();
+            vb.Width = 50;
+            vb.Height = 50;
+
             var canvas = new Canvas();
-            canvas.Width = 50;
-            canvas.Height = 50;
-            canvas.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-            canvas.Visibility = Visibility.Visible;
-            Canvas.SetTop(canvas, 500);
-            Canvas.SetLeft(canvas, 500);
-            return canvas;
+            canvas.Style = Application.Current.Resources["FaceCanvas"] as Style;
+
+            var faceBorder = new Ellipse();
+            faceBorder.Stroke = new SolidColorBrush(BodyColor);
+            faceBorder.Style = Application.Current.Resources["FaceBorder"] as Style;
+
+            canvas.Children.Add(faceBorder);
+            vb.Child = canvas;
+            vb.Visibility = Visibility.Collapsed;
+
+            return vb;
         }
 
         public Body(Color bodyColor)
