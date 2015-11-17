@@ -92,8 +92,6 @@ namespace KinectFaces
             eye.Style = Application.Current.Resources["EyeOpen"] as Style;
             eye.Visibility = Visibility.Collapsed;
 
-            Canvas.SetTop(eye, 100);
-
             var eyeSpacing = 150;
             if (isLeft)
             {

@@ -13,11 +13,11 @@
         <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI</FontFamily>
 
         <Style x:Key="ThumbsUpCanvas" TargetType="Canvas">
-            <Setter Property="Width" Value="397.9001" />
-            <Setter Property="Height" Value="625.47734" />
+            <Setter Property="Width" Value="400" />
+            <Setter Property="Height" Value="626" />
             <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <CompositeTransform TranslateX="-281.08454" TranslateY="-302.4001" />
+                    <CompositeTransform TranslateX="-200" TranslateY="-313" />
                 </Setter.Value>
             </Setter>
         </Style>
@@ -67,7 +67,7 @@
             <Setter Property="StrokeMiterLimit" Value="4" />
             <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <CompositeTransform TranslateX="-20" />
+                    <CompositeTransform TranslateX="-20" TranslateY="120" />
                 </Setter.Value>
             </Setter>
         </Style>
