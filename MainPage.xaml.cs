@@ -415,17 +415,19 @@ namespace KinectFaces
         {
             face.Visibility = Visibility.Visible;
 
+            var left = point.X - face.Width / 2;
+            var right = point.Y - face.Height / 2;
             if(faceResult != null)
             {
-                var box = faceResult.FaceBoundingBoxInColorSpace;
-                face.Width = body.FaceWidth.Update(box.Right - box.Left);
-                face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
+                //var box = faceResult.FaceBoundingBoxInColorSpace;
+                //face.Width = body.FaceWidth.Update(box.Right - box.Left);
+                //face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
             }
 
             if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
             {
-                Canvas.SetLeft(face, point.X - face.Width / 2  +20);
-                Canvas.SetTop(face, point.Y - face.Height / 2);
+                Canvas.SetLeft(face, left);
+                Canvas.SetTop(face, right);
             }
         }
 

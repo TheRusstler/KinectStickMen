@@ -44,21 +44,19 @@
         </Canvas>-->
 
         <Style x:Key="FaceCanvas" TargetType="Canvas">
-            <Setter Property="Width" Value="397.9001" />
-            <Setter Property="Height" Value="625.47734" />
+            <Setter Property="Width" Value="400" />
+            <Setter Property="Height" Value="400" />
             <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <CompositeTransform TranslateX="-165.35713" TranslateY="-230.57652" />
+                    <CompositeTransform TranslateY="-190" />
                 </Setter.Value>
             </Setter>
         </Style>
 
         <!--<Ellipse Canvas.Left="172.9" Canvas.Top="238.1" Width="397.1" Height="397.1" Name="path4136" StrokeThickness="15" Stroke="#FFFFFFFF" StrokeMiterLimit="4"/>-->
         <Style x:Key="FaceBorder" TargetType="Ellipse">
-            <Setter Property="Canvas.Left" Value="172.9" />
-            <Setter Property="Canvas.Top" Value="238.1" />
-            <Setter Property="Width" Value="397.1" />
-            <Setter Property="Height" Value="397.1" />
+            <Setter Property="Width" Value="400" />
+            <Setter Property="Height" Value="400" />
             <Setter Property="StrokeThickness" Value="15" />
             <Setter Property="StrokeMiterLimit" Value="4" />
         </Style>
