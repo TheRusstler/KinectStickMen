@@ -25,6 +25,11 @@ namespace KinectFaces
 
         public KalamanDouble FaceWidth = new KalamanDouble(), FaceHeight = new KalamanDouble();
 
+        public FrameworkElement LeftEyeOpen { get; set; }
+        public FrameworkElement LeftEyeClosed { get; set; }
+        public FrameworkElement RightEyeOpen { get; set; }
+        public FrameworkElement RightEyeClosed { get; set; }
+
         public FrameworkElement HandLeftThumbsUp { get; set; }
         public FrameworkElement HandRightThumbsUp { get; set; }
 
@@ -61,15 +66,6 @@ namespace KinectFaces
 
         public FrameworkElement GetFace()
         {
-            //var canvas = new Canvas();
-            //canvas.Width = 50;
-            //canvas.Height = 50;
-            //canvas.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-            //canvas.Visibility = Visibility.Visible;
-            //Canvas.SetTop(canvas, 500);
-            //Canvas.SetLeft(canvas, 500);
-            //return canvas;
-
             var vb = new Viewbox();
             vb.Width = 50;
             vb.Height = 50;
@@ -88,6 +84,44 @@ namespace KinectFaces
             return vb;
         }
 
+        public FrameworkElement GetEye(bool isOpen, bool isLeft)
+        {
+            var canvas = (this.Face as Viewbox).Child as Canvas;
+            var eye = new Ellipse();
+            eye.Stroke = new SolidColorBrush(BodyColor);
+            eye.Style = Application.Current.Resources["EyeOpen"] as Style;
+            eye.Visibility = Visibility.Collapsed;
+
+            Canvas.SetTop(eye, 100);
+
+            var eyeSpacing = 150;
+            if (isLeft)
+            {
+                Canvas.SetLeft(eye, eyeSpacing);
+            }
+            else
+            {
+                Canvas.SetLeft(eye, canvas.Width - eyeSpacing);
+            }
+
+            canvas.Children.Add(eye);
+            return eye;
+        }
+
+        public void UpdateEye(bool isOpen, bool isLeft)
+        {
+            if (isLeft)
+            {
+                this.LeftEyeClosed.Visibility = !isOpen ? Visibility.Visible : Visibility.Collapsed;
+                this.LeftEyeOpen.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                this.RightEyeClosed.Visibility = !isOpen ? Visibility.Visible : Visibility.Collapsed;
+                this.RightEyeOpen.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
         public Body(Color bodyColor)
         {
             this.BodyColor = bodyColor;
@@ -95,6 +129,10 @@ namespace KinectFaces
             this.HandLeftThumbsUp = GetHand(true);
             this.HandRightThumbsUp = GetHand(false);
             this.Face = GetFace();
+            this.LeftEyeOpen = GetEye(true, true);
+            this.LeftEyeClosed = GetEye(false, true);
+            this.RightEyeOpen = GetEye(true, false);
+            this.RightEyeClosed = GetEye(false, false);
 
             this.BoneLines = new Dictionary<Tuple<JointType, JointType>, Line>();
 

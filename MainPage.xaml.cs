@@ -415,19 +415,32 @@ namespace KinectFaces
         {
             face.Visibility = Visibility.Visible;
 
-            var left = point.X - face.Width / 2;
-            var right = point.Y - face.Height / 2;
+            bool isLeftEyeClosed = false, isRightEyeClosed = false;
+
+            // If face tracking working
             if(faceResult != null)
             {
-                //var box = faceResult.FaceBoundingBoxInColorSpace;
-                //face.Width = body.FaceWidth.Update(box.Right - box.Left);
-                //face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
+                // Size head appropriately
+                var box = faceResult.FaceBoundingBoxInColorSpace;
+                face.Width = body.FaceWidth.Update(box.Right - box.Left);
+                face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
+
+                // Left eye
+                isLeftEyeClosed = faceResult.FaceProperties[FaceProperty.LeftEyeClosed] == DetectionResult.Yes ? true : false;
+                isRightEyeClosed = faceResult.FaceProperties[FaceProperty.RightEyeClosed] == DetectionResult.Yes ? true : false;
             }
+
+            body.UpdateEye(!isLeftEyeClosed, true);
+            body.UpdateEye(!isRightEyeClosed, false);
+
+            // Position Head
+            double borderLeft = point.X - face.Width / 2;
+            double borderRight = point.Y - face.Height / 2;
 
             if (!Double.IsInfinity(point.X) && !Double.IsInfinity(point.Y))
             {
-                Canvas.SetLeft(face, left);
-                Canvas.SetTop(face, right);
+                Canvas.SetLeft(face, borderLeft);
+                Canvas.SetTop(face, borderRight);
             }
         }
 

@@ -53,13 +53,25 @@
             </Setter>
         </Style>
 
-        <!--<Ellipse Canvas.Left="172.9" Canvas.Top="238.1" Width="397.1" Height="397.1" Name="path4136" StrokeThickness="15" Stroke="#FFFFFFFF" StrokeMiterLimit="4"/>-->
         <Style x:Key="FaceBorder" TargetType="Ellipse">
             <Setter Property="Width" Value="400" />
             <Setter Property="Height" Value="400" />
             <Setter Property="StrokeThickness" Value="15" />
             <Setter Property="StrokeMiterLimit" Value="4" />
         </Style>
+
+        <Style x:Key="EyeOpen" TargetType="Ellipse">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="StrokeThickness" Value="5" />
+            <Setter Property="StrokeMiterLimit" Value="4" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <CompositeTransform TranslateX="-20" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
 
     </Application.Resources>
 </Application>
