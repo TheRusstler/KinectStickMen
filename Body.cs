@@ -25,6 +25,10 @@ namespace KinectFaces
 
         public KalamanDouble FaceWidth = new KalamanDouble(), FaceHeight = new KalamanDouble();
 
+        public FrameworkElement Smile { get; set; }
+        public FrameworkElement PlainMouth { get; set; }
+
+
         public FrameworkElement LeftEyeOpen { get; set; }
         public FrameworkElement LeftEyeClosed { get; set; }
         public FrameworkElement RightEyeOpen { get; set; }
@@ -109,6 +113,36 @@ namespace KinectFaces
             return eye;
         }
 
+        public FrameworkElement GetMouth(bool isSmile)
+        {
+            var canvas = (this.Face as Viewbox).Child as Canvas;
+
+            Shape mouth;
+
+            if(isSmile)
+            {
+                mouth = new Path();
+                mouth.Style = Application.Current.Resources["Smile"] as Style;
+                mouth.Stroke = new SolidColorBrush(BodyColor);
+            }
+            else
+            {
+                mouth = new Rectangle();
+                (mouth as Shape).Fill = new SolidColorBrush(BodyColor);
+                Canvas.SetTop(mouth, 300);
+                Canvas.SetLeft(mouth, canvas.Width / 2 - mouth.Width / 2);
+            }
+
+            canvas.Children.Add(mouth);
+            return mouth;
+        }
+
+        public void UpdateMouth(bool isSmile)
+        {
+            Smile.Visibility = isSmile ? Visibility.Visible : Visibility.Collapsed;
+            PlainMouth.Visibility = !isSmile ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         public void UpdateEye(bool isOpen, bool isLeft)
         {
             if (isLeft)
@@ -130,6 +164,8 @@ namespace KinectFaces
             this.HandLeftThumbsUp = GetHand(true);
             this.HandRightThumbsUp = GetHand(false);
             this.Face = GetFace();
+            this.Smile = GetMouth(true);
+            this.PlainMouth = GetMouth(false);
             this.LeftEyeOpen = GetEye(true, true);
             this.LeftEyeClosed = GetEye(false, true);
             this.RightEyeOpen = GetEye(true, false);

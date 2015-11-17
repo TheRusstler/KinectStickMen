@@ -425,7 +425,10 @@ namespace KinectFaces
                 face.Width = body.FaceWidth.Update(box.Right - box.Left);
                 face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
 
-                // Left eye
+                // Mouth
+                body.UpdateMouth(faceResult.FaceProperties[FaceProperty.Happy] == DetectionResult.Yes);
+
+                // Eyes
                 isLeftEyeClosed = faceResult.FaceProperties[FaceProperty.LeftEyeClosed] == DetectionResult.Yes ? true : false;
                 isRightEyeClosed = faceResult.FaceProperties[FaceProperty.RightEyeClosed] == DetectionResult.Yes ? true : false;
             }

@@ -31,18 +31,6 @@
         </Style>
 
 
-
-        <!--<Canvas Name="layer1">
-            <Canvas.RenderTransform>
-                <TranslateTransform X="-165.35713" Y="-230.57652"/>
-            </Canvas.RenderTransform>
-            <Ellipse xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="172.9" Canvas.Top="238.1" Width="397.1" Height="397.1" Name="path4136" StrokeThickness="15" Stroke="#FFFFFFFF" StrokeMiterLimit="4"/>
-            <Ellipse xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="302.5" Canvas.Top="364.1" Width="40" Height="40" Name="path4138" StrokeThickness="15" Stroke="#FFFFFFFF" StrokeMiterLimit="4"/>
-            <Ellipse xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="399.6" Canvas.Top="364.1" Width="40" Height="40" Name="path41381" StrokeThickness="15" Stroke="#FFFFFFFF" StrokeMiterLimit="4"/>
-            <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path4155" StrokeThickness="15" Stroke="#FFFFFFFF" StrokeMiterLimit="4" StrokeLineJoin="Miter" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" Data="m 288.21428 507.00509 c 0 0 75 96.42857 171.42857 0"/>
-        </Canvas>
-        </Canvas>-->
-
         <Style x:Key="FaceCanvas" TargetType="Canvas">
             <Setter Property="Width" Value="400" />
             <Setter Property="Height" Value="400" />
@@ -58,6 +46,18 @@
             <Setter Property="Height" Value="400" />
             <Setter Property="StrokeThickness" Value="15" />
             <Setter Property="StrokeMiterLimit" Value="4" />
+        </Style>
+
+        <Style x:Key="Smile" TargetType="Path">
+            <Setter Property="Data" Value="M620,480 C620,480 687.5,552.5 760,480" />
+            <Setter Property="Height" Value="50" />
+            <Setter Property="Stretch" Value="Fill" />
+            <Setter Property="StrokeThickness" Value="15" />
+            <Setter Property="StrokeMiterLimit" Value="4" />
+            <Setter Property="UseLayoutRounding" Value="False" />
+            <Setter Property="Canvas.Left" Value="122" />
+            <Setter Property="Canvas.Top" Value="250" />
+            <Setter Property="Width" Value="155" />
         </Style>
 
         <Style x:Key="EyeOpen" TargetType="Ellipse">
