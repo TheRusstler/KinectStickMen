@@ -87,9 +87,12 @@ namespace KinectFaces
         public FrameworkElement GetEye(bool isOpen, bool isLeft)
         {
             var canvas = (this.Face as Viewbox).Child as Canvas;
-            var eye = new Ellipse();
+
+            Shape eye = isOpen ? new Ellipse() as Shape : new Rectangle() as Shape;
+            
             eye.Stroke = new SolidColorBrush(BodyColor);
-            eye.Style = Application.Current.Resources["EyeOpen"] as Style;
+
+            eye.Style = isOpen ? Application.Current.Resources["EyeOpen"] as Style : Application.Current.Resources["EyeClosed"] as Style;
             eye.Visibility = Visibility.Collapsed;
 
             var eyeSpacing = 150;

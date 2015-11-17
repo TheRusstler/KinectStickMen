@@ -72,6 +72,18 @@
             </Setter>
         </Style>
 
+        <Style x:Key="EyeClosed" TargetType="Rectangle">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="5" />
+            <Setter Property="StrokeThickness" Value="5" />
+            <Setter Property="StrokeMiterLimit" Value="4" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <CompositeTransform TranslateX="-20" TranslateY="140" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
 
     </Application.Resources>
 </Application>
