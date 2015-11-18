@@ -415,7 +415,7 @@ namespace KinectFaces
         {
             face.Visibility = Visibility.Visible;
 
-            bool isLeftEyeClosed = false, isRightEyeClosed = false;
+            bool isLeftEyeClosed = false, isRightEyeClosed = false, isHappy = false;
 
             // If face tracking working
             if(faceResult != null)
@@ -426,13 +426,15 @@ namespace KinectFaces
                 face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
 
                 // Mouth
-                body.UpdateMouth(faceResult.FaceProperties[FaceProperty.Happy] == DetectionResult.Yes);
+                isHappy = faceResult.FaceProperties[FaceProperty.Happy] == DetectionResult.Yes;
+                
 
                 // Eyes
                 isLeftEyeClosed = faceResult.FaceProperties[FaceProperty.LeftEyeClosed] == DetectionResult.Yes ? true : false;
                 isRightEyeClosed = faceResult.FaceProperties[FaceProperty.RightEyeClosed] == DetectionResult.Yes ? true : false;
             }
 
+            body.UpdateMouth(isHappy);
             body.UpdateEye(!isLeftEyeClosed, true);
             body.UpdateEye(!isRightEyeClosed, false);
 
