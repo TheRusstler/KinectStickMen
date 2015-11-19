@@ -23,7 +23,7 @@ namespace KinectFaces
 
         public FrameworkElement Face { get; set; }
 
-        public KalamanDouble FaceWidth = new KalamanDouble(), FaceHeight = new KalamanDouble();
+        //public KalamanDouble FaceWidth = new KalamanDouble(), FaceHeight = new KalamanDouble();
 
         public FrameworkElement Smile { get; set; }
         public FrameworkElement PlainMouth { get; set; }
@@ -71,8 +71,8 @@ namespace KinectFaces
         public FrameworkElement GetFace()
         {
             var vb = new Viewbox();
-            vb.Width = 50;
-            vb.Height = 50;
+            vb.Width = 80;
+            vb.Height = 80;
 
             var canvas = new Canvas();
             canvas.Style = Application.Current.Resources["FaceCanvas"] as Style;
@@ -150,12 +150,14 @@ namespace KinectFaces
             this.HandLeftThumbsUp = GetHand(true);
             this.HandRightThumbsUp = GetHand(false);
             this.Face = GetFace();
-            this.Smile = GetMouth(true);
-            this.PlainMouth = GetMouth(false);
+
             this.LeftEyeOpen = GetEye(true, true);
             this.LeftEyeClosed = GetEye(false, true);
             this.RightEyeOpen = GetEye(true, false);
             this.RightEyeClosed = GetEye(false, false);
+
+            this.Smile = GetMouth(true);
+            this.PlainMouth = GetMouth(false);
 
             this.BoneLines = new Dictionary<Tuple<JointType, JointType>, Line>();
 

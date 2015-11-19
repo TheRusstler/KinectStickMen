@@ -21,11 +21,7 @@ namespace KinectFaces
         readonly string RunningStatusText = "Running";
         readonly string SensorNotAvailableStatusText = "Kinect not available!";
 
-        readonly double HighConfidenceHandSize = 40;
-        readonly double LowConfidenceHandSize = 20;
-
         readonly double TrackedBoneThickness = 4.0;
-        readonly double InferredBoneThickness = 1.0;
         readonly float InferredZPositionClamp = 0.1f;
 
         #endregion
@@ -420,11 +416,6 @@ namespace KinectFaces
             // If face tracking working
             if(faceResult != null)
             {
-                // Size head appropriately
-                var box = faceResult.FaceBoundingBoxInColorSpace;
-                face.Width = body.FaceWidth.Update(box.Right - box.Left);
-                face.Height = body.FaceHeight.Update(box.Bottom - box.Top);
-
                 // Mouth
                 isHappy = faceResult.FaceProperties[FaceProperty.Happy] == DetectionResult.Yes;
                 
@@ -468,15 +459,7 @@ namespace KinectFaces
                 line.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
                 return;
             }
-
-            // all lines are inferred thickness unless both joints are tracked
-            line.StrokeThickness = InferredBoneThickness;
-
-            if (startJoint.TrackingState == TrackingState.Tracked &&
-                endJoint.TrackingState == TrackingState.Tracked)
-            {
-                line.StrokeThickness = TrackedBoneThickness;
-            }
+            line.StrokeThickness = TrackedBoneThickness;
 
             line.Visibility = Windows.UI.Xaml.Visibility.Visible;
 
